@@ -1,6 +1,7 @@
 package main
 
 import (
+	"sort"
 	"strings"
 	"sync"
 )
@@ -12,7 +13,6 @@ type FileSystem struct {
 
 func NewFileSystem() *FileSystem {
 	return &FileSystem{
-		//root is always a directory node, so we initialize it as such ("/").
 		root: newDirectoryNode(),
 	}
 }
@@ -43,22 +43,30 @@ func (fs *FileSystem) Ls(path string) []string {
 	tokens := parsePath(path)
 	curr := fs.root
 	for _, token := range tokens {
-		curr = curr.children[token]
+		next, exists := curr.children[token]
+		if !exists {
+			return []string{}
+		}
+		curr = next
 	}
 	if curr.isFile {
 		return []string{tokens[len(tokens)-1]}
-		//If it's a directory, we return the sorted list of its children.
 	}
-
 	sortedChildren := make([]string, 0, len(curr.children))
+
 	for child := range curr.children {
 		sortedChildren = append(sortedChildren, child)
 	}
+	sort.Strings(sortedChildren)
 	return sortedChildren
 }
 
 func (fs *FileSystem) AddContentToFile(path string, content string) {
 	tokens := parsePath(path)
+	if len(tokens) == 0 {
+		return
+	}
+
 	curr := fs.root
 	for i := 0; i < len(tokens)-1; i++ {
 		token := tokens[i]
@@ -71,7 +79,6 @@ func (fs *FileSystem) AddContentToFile(path string, content string) {
 	if _, exists := curr.children[fileName]; !exists {
 		curr.children[fileName] = newFileNode()
 	}
-
 	curr.children[fileName].content += content
 }
 

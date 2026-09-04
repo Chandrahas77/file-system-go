@@ -5,6 +5,7 @@ import "fmt"
 func main() {
 	fs := NewFileSystem()
 	fs.Mkdir("/a/b/c")
+	fs.Mkdir("/a")
 	fmt.Println("New file initialized and directory a/b/c created")
 	fmt.Println(fs.Ls("/"))
 	fmt.Println(fs.Ls("/a"))
