@@ -29,6 +29,8 @@ func parsePath(path string) []string {
 }
 
 func (fs *FileSystem) Mkdir(path string) {
+	fs.mu.Lock()
+	defer fs.mu.Unlock()
 	tokens := parsePath(path)
 	curr := fs.root
 	for _, token := range tokens {
@@ -40,6 +42,8 @@ func (fs *FileSystem) Mkdir(path string) {
 }
 
 func (fs *FileSystem) Ls(path string) []string {
+	fs.mu.RLock()
+	defer fs.mu.RUnlock()
 	tokens := parsePath(path)
 	curr := fs.root
 	for _, token := range tokens {
@@ -62,6 +66,8 @@ func (fs *FileSystem) Ls(path string) []string {
 }
 
 func (fs *FileSystem) AddContentToFile(path string, content string) {
+	fs.mu.Lock()
+	defer fs.mu.Unlock()
 	tokens := parsePath(path)
 	if len(tokens) == 0 {
 		return
@@ -83,6 +89,8 @@ func (fs *FileSystem) AddContentToFile(path string, content string) {
 }
 
 func (fs *FileSystem) ReadContentFromFile(path string) string {
+	fs.mu.RLock()
+	defer fs.mu.RUnlock()
 	tokens := parsePath(path)
 	curr := fs.root
 	for _, token := range tokens {
