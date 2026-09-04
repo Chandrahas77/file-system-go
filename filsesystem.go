@@ -138,3 +138,7 @@ func (fs *FileSystem) CanAccess(path string, user string) bool {
 	}
 	return currentAccess == Allow
 }
+
+// TODO:  Add and track group memberships/roles
+//  Tackle multi-group conflict
+
