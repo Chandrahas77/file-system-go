@@ -98,3 +98,43 @@ func (fs *FileSystem) ReadContentFromFile(path string) string {
 	}
 	return curr.content
 }
+
+func (fs *FileSystem) SetPermissions(path string, user string, access AccessType) {
+	fs.mu.Lock()
+	defer fs.mu.Unlock()
+
+	tokens := parsePath(path)
+	curr := fs.root
+
+	for _, token := range tokens {
+		if _, exists := curr.children[token]; !exists {
+			curr.children[token] = newDirectoryNode()
+		}
+		curr = curr.children[token]
+	}
+	curr.permissions[user] = access
+}
+
+func (fs *FileSystem) CanAccess(path string, user string) bool {
+	fs.mu.RLock()
+	defer fs.mu.RUnlock()
+
+	curr := fs.root
+	currentAccess := Deny
+	tokens := parsePath(path)
+
+	if rule, exists := curr.permissions[user]; exists {
+		currentAccess = rule
+	}
+	for _, token := range tokens {
+		next, exists := curr.children[token]
+		if !exists {
+			return false //path doesnt exist in furthter
+		}
+		curr = next
+		if rule, exists := curr.permissions[user]; exists {
+			currentAccess = rule
+		}
+	}
+	return currentAccess == Allow
+}
